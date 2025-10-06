@@ -24,7 +24,13 @@
 </div>
 
 ## Features
+###New :
+- Added an SSH connection manager with saved profiles, quick-connect actions, and tab naming.
+- New pane layout controls allow splitting a tab into 2, 3, or 4 panes.
+- Added the option to mirror input across panes for synchronized commands.
+- Added pane layout and broadcast controls to the main and tab context menus, plus an SSH menu button in the header bar.
 
+###Current Features :
 - Color schemes - ([Tilix](https://github.com/gnunn1/tilix) compatible color scheme support)
 - Theming - your color scheme can be used to style the whole app
 - Background transparency
