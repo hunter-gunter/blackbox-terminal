@@ -16,7 +16,7 @@
 </div>
 
 <div align="center">
-  <img src="https://i.imgur.com/38c2eX4.png" alt="Preview"/><br/>
+  <img src="https://github.com/hunter-gunter/blackbox-terminal/blob/main/img/blackbox-terminal.png?raw=true" alt="Preview"/><br/>
   <small><i>
     Black Box 0.15.0 (theme <a href="https://github.com/storm119/Tilix-Themes/blob/master/Themes/japanesque.json" target="_blank">"Japanesque"</a>, fetch <a href="https://github.com/Rosettea/bunnyfetch">bunnyfetch</a>)
   </i></small>
@@ -24,13 +24,13 @@
 </div>
 
 ## Features
-###New :
+**New :**
 - Added an SSH connection manager with saved profiles, quick-connect actions, and tab naming.
 - New pane layout controls allow splitting a tab into 2, 3, or 4 panes.
 - Added the option to mirror input across panes for synchronized commands.
 - Added pane layout and broadcast controls to the main and tab context menus, plus an SSH menu button in the header bar.
 
-###Current Features :
+**Current Features :**
 - Color schemes - ([Tilix](https://github.com/gnunn1/tilix) compatible color scheme support)
 - Theming - your color scheme can be used to style the whole app
 - Background transparency
@@ -100,6 +100,17 @@ contribute with translations, visit the
     by your compositor.
   </i></small>
   <br/><br/>
+  <img src="https://github.com/hunter-gunter/blackbox-terminal/blob/main/img/split-screen.png?raw=true"><br/>
+  <small><i>
+    Split-Screen feature to manage up to 4 terminal at the same time !.
+  </i></small>
+  <br/><br/>
+  <img src="https://github.com/hunter-gunter/blackbox-terminal/blob/main/img/ssh-manager.png?raw=true"><br/>
+  <small><i>
+    Now you can manage all your SSH connection at one place.
+  </i></small>
+  <br/><br/>
+  <img src="https://github.com/hunter-gunter/blackbox-terminal/blob/main/img/ssh-manager-add.png?raw=true"><br/>
 </div>
 
 ## Credits
