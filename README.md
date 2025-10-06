@@ -74,6 +74,13 @@ To build and run Black Box, use GNOME Builder or VS Code along with [Vala](https
 
 If you want to build Black Box manually, look at the build script in [.gitlab-ci.yml](./.gitlab-ci.yml).
 
+**Compile without Flatpack**
+```bash
+meson setup builddir --prefix=/usr --buildtype=release -Dblackbox_is_flatpak=false
+meson compile -C builddir
+sudo meson install -C builddir
+blackbox
+```
 ## Translations
 
 Black Box is accepting translations through Weblate! If you'd like to
