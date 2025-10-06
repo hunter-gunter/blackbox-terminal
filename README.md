@@ -1,6 +1,6 @@
 <div align="center">
   <h1><img src="./data/icons/hicolor/scalable/apps/com.raggesilver.BlackBox.svg" height="64"/>Black Box</h1>
-  <h4>An elegant and customizable terminal for GNOME</h4>
+  <h4>A fork of blackbox-terminal to fix bugs and add more features</h4>
   <p>
     <a href="#features">Features</a> •
     <a href="#install">Install</a> •
@@ -45,36 +45,8 @@
 - Desktop notifications - get notified when a command is finished in the background
 - Customizable UI
 
-## Install
+## Compile / Installation
 
-**Flathub**
-
-<a href='https://flathub.org/apps/details/com.raggesilver.BlackBox'><img width='240' alt='Download on Flathub' src='https://flathub.org/assets/badges/flathub-badge-en.svg'/></a>
-
-```bash
-flatpak install flathub com.raggesilver.BlackBox
-```
-
-**Flatpak Nightly**
-
-You can also download the most recent build. Note that these are _unstable_ and completely unavailable if the latest pipeline failed.
-
-- [Flatpak](https://gitlab.gnome.org/raggesilver/blackbox/-/jobs/artifacts/main/raw/blackbox.flatpak?job=flatpak)
-- [Zip](https://gitlab.gnome.org/raggesilver/blackbox/-/jobs/artifacts/main/download?job=flatpak)
-
-**Looking for an older release?**
-
-Check out the [releases page](https://gitlab.gnome.org/raggesilver/blackbox/-/releases).
-
-## Compile
-
-**Flatpak**
-
-To build and run Black Box, use GNOME Builder or VS Code along with [Vala](https://marketplace.visualstudio.com/items?itemName=prince781.vala) and [Flatpak](https://marketplace.visualstudio.com/items?itemName=bilelmoussaoui.flatpak-vscode) extensions.
-
-If you want to build Black Box manually, look at the build script in [.gitlab-ci.yml](./.gitlab-ci.yml).
-
-**Compile without Flatpack**
 ```bash
 meson setup builddir --prefix=/usr --buildtype=release -Dblackbox_is_flatpak=false
 meson compile -C builddir
