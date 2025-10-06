@@ -74,6 +74,29 @@
       </item>
     </section>
     <section>
+      <attribute name="label" translatable="yes">Pane Layout</attribute>
+      <item>
+        <attribute name="label" translatable="yes">Single Pane</attribute>
+        <attribute name="action">win.split-single</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Two Panes</attribute>
+        <attribute name="action">win.split-double</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Three Panes</attribute>
+        <attribute name="action">win.split-triple</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Four Panes</attribute>
+        <attribute name="action">win.split-quad</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Mirror Input Across Panes</attribute>
+        <attribute name="action">win.toggle-sync-input</attribute>
+      </item>
+    </section>
+    <section>
       <item>
         <attribute name="label" translatable="yes">Keyboard Shortcuts</attribute>
         <attribute name="action">win.show-help-overlay</attribute>
@@ -170,6 +193,13 @@
                                 <property name="tooltip-text" translatable="yes">New Tab</property>
                                 <property name="icon-name">list-add-symbolic</property>
                                 <property name="action-name">win.new_tab</property>
+                              </object>
+                            </child>
+
+                            <child>
+                              <object class="GtkMenuButton" id="ssh_menu_button_single">
+                                <property name="tooltip-text" translatable="yes">SSH</property>
+                                <property name="icon-name">network-server-symbolic</property>
                               </object>
                             </child>
 
@@ -280,6 +310,13 @@
                                 <property name="tooltip-text" translatable="yes">New Tab</property>
                                 <property name="icon-name">list-add-symbolic</property>
                                 <property name="action-name">win.new_tab</property>
+                              </object>
+                            </child>
+
+                            <child>
+                              <object class="GtkMenuButton" id="ssh_menu_button_multi">
+                                <property name="tooltip-text" translatable="yes">SSH</property>
+                                <property name="icon-name">network-server-symbolic</property>
                               </object>
                             </child>
 

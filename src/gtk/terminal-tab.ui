@@ -13,10 +13,10 @@
     </child>
 
     <child>
-      <object class="GtkScrolledWindow" id="scrolled">
-        <!-- <property name="child">
-          <lookup name="terminal">TerminalTerminalTab</lookup>
-        </property> -->
+      <object class="GtkBox" id="terminal_container">
+        <property name="orientation">vertical</property>
+        <property name="hexpand">true</property>
+        <property name="vexpand">true</property>
       </object>
     </child>
 

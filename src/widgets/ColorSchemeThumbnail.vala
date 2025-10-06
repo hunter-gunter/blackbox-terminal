@@ -27,13 +27,12 @@ public class Terminal.ColorSchemeThumbnailProvider {
   public static void init_resource () {
     if (svg_content == null) {
       try {
-        uint8[] data;
+        var bytes = GLib.resources_lookup_data (
+          "/com/raggesilver/BlackBox/resources/svg/color-scheme-thumbnail.svg",
+          GLib.ResourceLookupFlags.NONE
+        );
 
-        GLib.File.new_for_uri (
-          "resource:///com/raggesilver/BlackBox/resources/svg/color-scheme-thumbnail.svg"
-        ).load_contents (null, out data, null);
-
-        svg_content = (string) data;
+        svg_content = (string) GLib.Bytes.unref_to_data ((owned) bytes);
       }
       catch (Error e) {
         error ("%s", e.message);
@@ -125,7 +124,10 @@ public class Terminal.ColorSchemePreviewPaintable : GLib.Object, Gdk.Paintable {
 
   private async void load_image () {
     var file_content = ColorSchemeThumbnailProvider.apply_scheme (this.scheme);
-    return_if_fail (file_content != null);
+
+    if (file_content == null) {
+      return;
+    }
 
     try {
       this.handler = new Rsvg.Handle.from_data (file_content);

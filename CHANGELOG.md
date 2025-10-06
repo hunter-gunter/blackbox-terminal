@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.15.0 - 2024-09-30
+
+Features:
+- Bug Fix when disconnecting and connecting mutliple time with SSH that doesn't end the sessions correctly and makes a hug usage of RAM.
+- Added an SSH connection manager with saved profiles, quick-connect actions, and tab naming.
+- New pane layout controls allow splitting a tab into 2, 3, or 4 panes.
+- Added the option to mirror input across panes for synchronized commands.
+- Added pane layout and broadcast controls to the main and tab context menus, plus an SSH menu button in the header bar.
+
 ## 0.14.0 - 2023-07-17
 
 The Sandbox Conundrum.

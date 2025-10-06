@@ -38,10 +38,9 @@ public struct Terminal.Padding {
   }
 
   public static Padding from_variant (Variant vari) {
-    return_val_if_fail (
-      vari.check_format_string ("(uuuu)", false),
-      Padding.zero ()
-    );
+    if (!vari.check_format_string ("(uuuu)", false)) {
+      return Padding.zero ();
+    }
 
     var iter = vari.iterator ();
     uint top = 0, right = 0, bottom = 0, left = 0;
@@ -113,6 +112,11 @@ public class Terminal.Window : Adw.ApplicationWindow {
   Gtk.Box       layout_box;
   Gtk.Overlay   overlay;
 
+  GLib.Menu     ssh_menu;
+  GLib.Menu     ssh_connect_section;
+  GLib.Menu     ssh_manage_section;
+  ulong         ssh_store_handler_id = 0;
+
   weak Adw.TabPage? tab_menu_target = null;
 
   // Actions
@@ -125,6 +129,14 @@ public class Terminal.Window : Adw.ApplicationWindow {
   SimpleAction close_specific_tab_action;
   SimpleAction detatch_tab_action;
   SimpleAction rename_tab_action;
+  SimpleAction show_ssh_manager_action;
+  SimpleAction new_ssh_profile_action;
+  SimpleAction connect_ssh_action;
+  SimpleAction split_single_action;
+  SimpleAction split_double_action;
+  SimpleAction split_triple_action;
+  SimpleAction split_quad_action;
+  SimpleAction toggle_sync_input_action;
 
   // TODO: bring all SimpleActions over here
   private const ActionEntry[] ACTION_ENTRIES = {
@@ -132,6 +144,7 @@ public class Terminal.Window : Adw.ApplicationWindow {
   };
 
   static PreferencesWindow? preferences_window = null;
+  static SSHManagerWindow? ssh_manager_window = null;
 
   construct {
     if (DEVEL) {
@@ -194,6 +207,8 @@ public class Terminal.Window : Adw.ApplicationWindow {
 
     this.add_actions ();
     this.connect_signals ();
+    this.setup_ssh_integration ();
+    this.update_split_actions ();
 
     if (!skip_initial_tab) {
       this.new_tab (command, cwd);
@@ -287,6 +302,164 @@ public class Terminal.Window : Adw.ApplicationWindow {
       this.copy_link_action.set_enabled (this.link != null);
       this.open_link_action.set_enabled (this.link != null);
     });
+  }
+
+  private void setup_ssh_integration () {
+    this.ssh_menu = new GLib.Menu ();
+    this.ssh_connect_section = new GLib.Menu ();
+    this.ssh_manage_section = new GLib.Menu ();
+
+    this.ssh_menu.append_section (null, this.ssh_connect_section);
+
+    this.ssh_manage_section.append (_("Add Connection..."),
+                                    "win.new-ssh-profile");
+    this.ssh_manage_section.append (_("Manage Connections..."),
+                                    "win.show-ssh-manager");
+
+    this.ssh_menu.append_section (null, this.ssh_manage_section);
+
+    this.header_bar.set_ssh_menu_model (this.ssh_menu);
+    this.update_ssh_menu ();
+
+    var store = SSHProfileStore.get_default ();
+    this.ssh_store_handler_id = store.profiles_changed.connect (() => {
+      this.update_ssh_menu ();
+    });
+
+    this.close_request.connect (() => {
+      if (this.ssh_store_handler_id != 0) {
+        store.disconnect (this.ssh_store_handler_id);
+        this.ssh_store_handler_id = 0;
+      }
+
+      return false;
+    });
+  }
+
+  private void update_ssh_menu () {
+    for (int i = this.ssh_connect_section.get_n_items () - 1; i >= 0; i--) {
+      this.ssh_connect_section.remove (i);
+    }
+
+    foreach (var profile in SSHProfileStore.get_default ().get_profiles ()) {
+      this.ssh_connect_section.append (
+        profile.connection_label,
+        "win.connect-ssh('%s')".printf (profile.id)
+      );
+    }
+  }
+
+  private SSHManagerWindow ensure_ssh_manager_window () {
+    if (ssh_manager_window == null) {
+      ssh_manager_window = new SSHManagerWindow (this);
+      ssh_manager_window.close_request.connect (() => {
+        ssh_manager_window = null;
+        return false;
+      });
+    }
+    else {
+      ssh_manager_window.set_transient_for (this);
+    }
+
+    return ssh_manager_window;
+  }
+
+  private void show_ssh_manager () {
+    this.ensure_ssh_manager_window ().present ();
+  }
+
+  private void open_new_ssh_profile () {
+    var manager = this.ensure_ssh_manager_window ();
+    manager.present ();
+    manager.show_new_profile_dialog ();
+  }
+
+  internal void connect_to_ssh_profile (string profile_id) {
+    var profile = SSHProfileStore.get_default ().get_profile (profile_id);
+
+    if (profile == null) {
+      warning ("Requested unknown SSH profile '%s'", profile_id);
+      return;
+    }
+
+    if (profile.has_password) {
+      var sshpass_path = GLib.Environment.find_program_in_path ("sshpass");
+
+      if (sshpass_path == null) {
+        var dialog = new Adw.MessageDialog (
+          this,
+          _("sshpass is required"),
+          _("Install sshpass to connect with stored passwords. Connect without auto-filled password?")
+        );
+
+        dialog.add_response ("cancel", _("Cancel"));
+        dialog.add_response ("connect", _("Connect"));
+        dialog.set_response_appearance ("connect",
+                                        Adw.ResponseAppearance.SUGGESTED);
+        dialog.set_close_response ("cancel");
+        dialog.set_default_response ("connect");
+
+        dialog.response.connect ((response) => {
+          if (response == "connect") {
+            this.spawn_ssh_profile (profile, false);
+          }
+
+          dialog.destroy ();
+        });
+
+        dialog.present ();
+        return;
+      }
+    }
+
+    this.spawn_ssh_profile (profile, true);
+  }
+
+  private void spawn_ssh_profile (SSHProfile profile, bool include_password) {
+    string command = profile.build_command (include_password);
+    string? cwd = Terminal
+      .get_current_working_directory_for_new_session (this.active_terminal);
+
+    this.new_tab (command, cwd);
+
+    var tab = this.tab_view.selected_page?.child as TerminalTab;
+    tab?.override_title (profile.connection_label);
+    this.update_split_actions ();
+  }
+
+  private void set_current_tab_split_mode (SplitMode mode) {
+    var tab = this.tab_view.selected_page?.child as TerminalTab;
+    if (tab == null) {
+      return;
+    }
+
+    tab.change_split_mode (mode);
+    this.update_split_actions ();
+  }
+
+  private void update_split_actions () {
+    var tab = this.tab_view.selected_page?.child as TerminalTab;
+
+    if (tab == null) {
+      this.split_single_action.set_enabled (false);
+      this.split_double_action.set_enabled (false);
+      this.split_triple_action.set_enabled (false);
+      this.split_quad_action.set_enabled (false);
+      this.toggle_sync_input_action.set_enabled (false);
+      this.toggle_sync_input_action.set_state (new GLib.Variant.boolean (false));
+      return;
+    }
+
+    this.split_single_action.set_enabled (tab.split_mode != SplitMode.SINGLE);
+    this.split_double_action.set_enabled (tab.split_mode != SplitMode.DOUBLE);
+    this.split_triple_action.set_enabled (tab.split_mode != SplitMode.TRIPLE);
+    this.split_quad_action.set_enabled (tab.split_mode != SplitMode.QUAD);
+
+    bool can_sync = tab.can_broadcast;
+    bool sync_state = can_sync && tab.broadcast_enabled;
+
+    this.toggle_sync_input_action.set_enabled (can_sync);
+    this.toggle_sync_input_action.set_state (new GLib.Variant.boolean (sync_state));
   }
 
   private void on_mouse_motion (
@@ -592,6 +765,72 @@ public class Terminal.Window : Adw.ApplicationWindow {
     this.rename_tab_action = new SimpleAction ("rename-tab", null);
     this.rename_tab_action.activate.connect (this.rename_tab);
     this.add_action (this.rename_tab_action);
+
+    this.show_ssh_manager_action = new SimpleAction ("show-ssh-manager", null);
+    this.show_ssh_manager_action.activate.connect (this.show_ssh_manager);
+    this.add_action (this.show_ssh_manager_action);
+
+    this.new_ssh_profile_action = new SimpleAction ("new-ssh-profile", null);
+    this.new_ssh_profile_action.activate.connect (this.open_new_ssh_profile);
+    this.add_action (this.new_ssh_profile_action);
+
+    this.connect_ssh_action = new SimpleAction (
+      "connect-ssh",
+      GLib.VariantType.STRING
+    );
+    this.connect_ssh_action.activate.connect ((parameter) => {
+      if (parameter != null) {
+        this.connect_to_ssh_profile (parameter.get_string ());
+      }
+    });
+    this.add_action (this.connect_ssh_action);
+
+    this.split_single_action = new SimpleAction ("split-single", null);
+    this.split_single_action.activate.connect (() => {
+      this.set_current_tab_split_mode (SplitMode.SINGLE);
+    });
+    this.add_action (this.split_single_action);
+
+    this.split_double_action = new SimpleAction ("split-double", null);
+    this.split_double_action.activate.connect (() => {
+      this.set_current_tab_split_mode (SplitMode.DOUBLE);
+    });
+    this.add_action (this.split_double_action);
+
+    this.split_triple_action = new SimpleAction ("split-triple", null);
+    this.split_triple_action.activate.connect (() => {
+      this.set_current_tab_split_mode (SplitMode.TRIPLE);
+    });
+    this.add_action (this.split_triple_action);
+
+    this.split_quad_action = new SimpleAction ("split-quad", null);
+    this.split_quad_action.activate.connect (() => {
+      this.set_current_tab_split_mode (SplitMode.QUAD);
+    });
+    this.add_action (this.split_quad_action);
+
+    this.toggle_sync_input_action = new SimpleAction.stateful (
+      "toggle-sync-input",
+      null,
+      new GLib.Variant.boolean (false)
+    );
+    this.toggle_sync_input_action.change_state.connect ((value) => {
+      bool requested = value.get_boolean ();
+      var tab = this.tab_view.selected_page?.child as TerminalTab;
+
+      if (tab == null || !tab.can_broadcast) {
+        requested = false;
+      }
+
+      if (tab != null) {
+        tab.change_broadcast_enabled (requested);
+        requested = tab.broadcast_enabled;
+      }
+
+      this.toggle_sync_input_action.set_state (new GLib.Variant.boolean (requested));
+      this.update_split_actions ();
+    });
+    this.add_action (this.toggle_sync_input_action);
   }
 
   private void rename_tab () {
@@ -785,9 +1024,11 @@ public class Terminal.Window : Adw.ApplicationWindow {
     }
     this.freeze_notify ();
     this.active_terminal_tab = this.tab_view.selected_page?.child as TerminalTab;
-    this.active_terminal = this.active_terminal_tab?.terminal;
+   this.active_terminal = this.active_terminal_tab?.terminal;
     this.active_terminal?.grab_focus ();
     this.thaw_notify ();
+
+    this.update_split_actions ();
   }
 
   private void on_active_terminal_tab_changed () {
@@ -812,10 +1053,29 @@ public class Terminal.Window : Adw.ApplicationWindow {
 
     this.active_terminal_tab_signal_handlers.append_val (handler);
 
+    handler = this.active_terminal_tab
+      .notify ["split-mode"]
+      .connect (() => {
+        this.update_split_actions ();
+      });
+    this.active_terminal_tab_signal_handlers.append_val (handler);
+
+    handler = this.active_terminal_tab
+      .notify ["broadcast-enabled"]
+      .connect (() => {
+        this.update_split_actions ();
+      });
+    this.active_terminal_tab_signal_handlers.append_val (handler);
+
     this.on_active_terminal_context_changed ();
     handler = this.active_terminal
       .context_changed
-      .connect (this.on_active_terminal_tab_changed);
+      .connect ((_context) => {
+        this.on_active_terminal_context_changed ();
+      });
+    this.active_terminal_signal_handlers.append_val (handler);
+
+    this.update_split_actions ();
   }
 
   private void on_active_terminal_context_changed () {

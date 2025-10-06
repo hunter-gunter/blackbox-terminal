@@ -228,32 +228,38 @@ public class Terminal.ProcessWatcher : Object {
 
         // Should we emit an event for process finished?
       }
-      {
-        if (!process.ended) {
-          try {
-            var source_pid = process.foreground_pid > -1
-              ? process.foreground_pid
-              : process.pid;
+      if (!process.ended) {
+        try {
+          var source_pid = process.foreground_pid > -1
+            ? process.foreground_pid
+            : process.pid;
 
-            var euid = get_euid_from_pid (source_pid, null);
+          var euid = get_euid_from_pid (source_pid, null);
 
-            if (euid == 0) {
-              process.context = ProcessContext.ROOT;
-            }
-            else {
-              var command = get_process_cmdline (source_pid);
+          if (euid == 0) {
+            process.context = ProcessContext.ROOT;
+          }
+          else {
+            var command = get_process_cmdline (source_pid).strip ();
 
-              if (command != "" && command.has_prefix ("ssh")) {
+            if (command != "") {
+              string executable = command.split (" ")[0];
+
+              if (executable.has_prefix ("ssh") ||
+                  executable.has_prefix ("sshpass")) {
                 process.context = ProcessContext.SSH;
               }
               else {
                 process.context = ProcessContext.DEFAULT;
               }
             }
+            else {
+              process.context = ProcessContext.DEFAULT;
+            }
           }
-          catch (GLib.Error e) {
-            warning (e.message);
-          }
+        }
+        catch (GLib.Error e) {
+          warning (e.message);
         }
       }
     }

@@ -22,6 +22,8 @@
 public class Terminal.HeaderBar : Adw.Bin {
 
   [GtkChild] public unowned Adw.TabBar tab_bar;
+  [GtkChild] private unowned Gtk.MenuButton ssh_menu_button_single;
+  [GtkChild] private unowned Gtk.MenuButton ssh_menu_button_multi;
 
   public Window   window        { get; set; }
   public Settings settings      { get; construct set; }
@@ -115,5 +117,10 @@ public class Terminal.HeaderBar : Adw.Bin {
     bool single_tab_enabled = this.single_tab_mode;
 
     set_css_class (this, "single-tab-mode", single_tab_enabled);
+  }
+
+  public void set_ssh_menu_model (GLib.MenuModel model) {
+    this.ssh_menu_button_single.menu_model = model;
+    this.ssh_menu_button_multi.menu_model = model;
   }
 }

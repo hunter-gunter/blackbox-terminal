@@ -70,6 +70,7 @@ public class Terminal.Settings : PQMarble.Settings {
   public uint    window_width                         { get; set; }
   public uint    working_directory_mode               { get; set; }
   public Variant terminal_padding                     { get; set; }
+  public Variant ssh_profiles                         { get; set; }
 
   public bool floating_controls                       { get; set; }
   public uint floating_controls_hover_area            { get; set; }

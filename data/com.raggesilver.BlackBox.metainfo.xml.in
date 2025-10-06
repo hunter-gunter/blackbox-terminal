@@ -96,6 +96,15 @@
   </kudos>
 
   <releases>
+    <release date="2024-09-30" version="0.15.0">
+      <description>
+        <ul>
+          <li>Added an SSH connection manager with quick-connect access and profile management.</li>
+          <li>Allow splitting a tab into 2, 3, or 4 panes and mirroring input across panes.</li>
+          <li>Added pane layout controls to the header and tab menus.</li>
+        </ul>
+      </description>
+    </release>
     <release date="2023-07-17" version="0.14.0">
       <description>
         <p>Features</p>

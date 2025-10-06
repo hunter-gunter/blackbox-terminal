@@ -158,6 +158,11 @@
       <default>'~'</default>
       <summary>Custom working directory for new terminals</summary>
     </key>
+    <key name="ssh-profiles" type="a(sssssu)">
+      <default>[]</default>
+      <summary>Stored SSH profiles</summary>
+      <description>List of saved SSH connection profiles (id, name, host, username, password, port).</description>
+    </key>
   </schema>
 
   <schema id="com.raggesilver.BlackBox.terminal.search"
